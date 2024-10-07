@@ -1,4 +1,4 @@
-## Interface: 11500
+## Interface: 11504
 ## Title-deDE: WeaponSwingTimer (Deutsch)
 ## Title-enUS: WeaponSwingTimer (English)
 ## Title-esES: WeaponSwingTimer (Español)

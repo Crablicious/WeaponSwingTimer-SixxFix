@@ -25,7 +25,9 @@ addon_data.config.InitializeVisuals = function()
 
     panel.name = "WeaponSwingTimer"
     panel.default = addon_data.config.OnDefault
-    InterfaceOptions_AddCategory(panel)
+    local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
+    category.ID = panel.name
+    Settings.RegisterAddOnCategory(category)
     
     -- Add the melee panel
     panel.config_melee_panel = CreateFrame("Frame", nil, panel)
@@ -39,7 +41,7 @@ addon_data.config.InitializeVisuals = function()
     panel.config_melee_panel.name = L["Melee Settings"]
     panel.config_melee_panel.parent = panel.name
     panel.config_melee_panel.default = addon_data.config.OnDefault
-    InterfaceOptions_AddCategory(panel.config_melee_panel)
+    Settings.RegisterCanvasLayoutSubcategory(category, panel.config_melee_panel, panel.config_melee_panel.name)
     
     -- Add the hunter panel
     panel.config_hunter_panel = CreateFrame("Frame", nil, panel)
@@ -53,7 +55,7 @@ addon_data.config.InitializeVisuals = function()
     panel.config_hunter_panel.name = L["Hunter & Wand Settings"]
     panel.config_hunter_panel.parent = panel.name
     panel.config_hunter_panel.default = addon_data.config.OnDefault
-    InterfaceOptions_AddCategory(panel.config_hunter_panel)
+    Settings.RegisterCanvasLayoutSubcategory(category, panel.config_hunter_panel, panel.config_hunter_panel.name)
     
 
 end
@@ -118,14 +120,6 @@ addon_data.config.SliderFactory = function(g_name, parent, title, min_val, max_v
     local editbox = CreateFrame("EditBox", "$parentEditBox", slider, "InputBoxTemplate")
     slider:SetMinMaxValues(min_val, max_val)
     slider:SetValueStep(val_step)
-    slider.text = _G[addon_name .. g_name .. "Text"]
-    slider.text:SetText(title)
-    slider.textLow = _G[addon_name .. g_name .. "Low"]
-    slider.textHigh = _G[addon_name .. g_name .. "High"]
-    slider.textLow:SetText(floor(min_val))
-    slider.textHigh:SetText(floor(max_val))
-    slider.textLow:SetTextColor(0.8,0.8,0.8)
-    slider.textHigh:SetTextColor(0.8,0.8,0.8)
     slider:SetObeyStepOnDrag(true)
     editbox:SetSize(45,30)
     editbox:ClearAllPoints()
