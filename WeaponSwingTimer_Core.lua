@@ -515,11 +515,11 @@ swing_reset_spells['WARRIOR'] = {
     -- --[[ Shoot Bow ]]
     -- --[[ Shoot Crossbow ]]
     -- --[[ Shoot Gun ]]
-    --[[ Slam ]]                    1464, 8820, 11604, 11605
+    --[[ Slam ]]                    1464, 8820, 11604, 11605,
     -- --[[ Sunder Armor ]]
     -- --[[ Sweeping Strikes ]]
     -- --[[ Taunt ]]
-    -- --[[ Throw ]]
+    --[[ Throw ]]                   2764
     -- --[[ Thunder Clap ]]
     -- --[[ Whirlwind ]]
 }
