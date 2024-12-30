@@ -23,6 +23,7 @@ addon_data.player.default_settings = {
     show_left_text = true,
     show_right_text = true,
 	show_offhand = true,
+	show_offhand_on_main = false,
     show_border = false,
     classic_bars = true,
     fill_empty = true,
@@ -268,6 +269,17 @@ addon_data.player.UpdateVisualsOnUpdate = function()
         else
             frame.main_spark:Show()
         end
+        if addon_data.player.has_offhand and settings.show_offhand_on_main then
+           local off_timer = addon_data.player.off_swing_timer
+           local off_on_main = ((off_timer + main_speed - main_timer) % main_speed) / main_speed
+           if not settings.fill_empty then
+              off_on_main = 1.0 - off_on_main
+           end
+           frame.off_on_main_marker:SetPoint('TOPLEFT', settings.width * off_on_main, 0)
+           frame.off_on_main_marker:Show()
+        else
+           frame.off_on_main_marker:Hide()
+        end
         frame.pala_blood_marker:SetPoint('TOPLEFT', pala_blood_width, settings.pala_offset)
         frame.pala_command_marker:SetPoint('TOPLEFT', pala_command_width, settings.pala_offset)
         -- Update the main bars text
@@ -358,6 +370,12 @@ addon_data.player.UpdateVisualsOnSettingsChange = function()
         end
         frame.main_bar:SetVertexColor(settings.main_r, settings.main_g, settings.main_b, settings.main_a)
         frame.main_spark:SetSize(16, settings.height)
+        if settings.show_offhand_on_main then
+           frame.off_on_main_marker:SetSize(1, settings.height)
+           frame.off_on_main_marker:Show()
+        else
+           frame.off_on_main_marker:Hide()
+        end
 		if (settings.pala_show_blood)
 		then
 			frame.pala_blood_marker:SetSize(1, settings.height+2*settings.pala_offset)
@@ -499,6 +517,9 @@ addon_data.player.InitializeVisuals = function()
     frame.off_right_text:SetFont("Fonts/FRIZQT__.ttf", settings.fontsize)
     frame.off_right_text:SetJustifyV("MIDDLE")
     frame.off_right_text:SetJustifyH("RIGHT")
+    -- Create off hand on main marker
+    frame.off_on_main_marker = frame:CreateTexture(nil,"OVERLAY")
+    frame.off_on_main_marker:SetColorTexture(1, 0.996, 0.722, 1.0)
 	-- Paladin sparks
     frame.pala_blood_marker = frame:CreateTexture(nil,"BORDER")
     frame.pala_blood_marker:SetColorTexture(1, 0.996, 0.722, 1.0)
@@ -519,6 +540,7 @@ addon_data.player.UpdateConfigPanelValues = function()
     local settings = character_player_settings
     panel.enabled_checkbox:SetChecked(settings.enabled)
     panel.show_offhand_checkbox:SetChecked(settings.show_offhand)
+    panel.show_offhand_on_main_checkbox:SetChecked(settings.show_offhand_on_main)
     panel.show_border_checkbox:SetChecked(settings.show_border)
     panel.classic_bars_checkbox:SetChecked(settings.classic_bars)
     panel.fill_empty_checkbox:SetChecked(settings.fill_empty)
@@ -561,6 +583,11 @@ end
 
 addon_data.player.ShowOffHandCheckBoxOnClick = function(self)
     character_player_settings.show_offhand = self:GetChecked()
+    addon_data.player.UpdateVisualsOnSettingsChange()
+end
+
+addon_data.player.ShowOffHandOnMainCheckBoxOnClick = function(self)
+    character_player_settings.show_offhand_on_main = self:GetChecked()
     addon_data.player.UpdateVisualsOnSettingsChange()
 end
 
@@ -774,6 +801,14 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Enables the player's off-hand swing bar."],
         addon_data.player.ShowOffHandCheckBoxOnClick)
     panel.show_offhand_checkbox:SetPoint("TOPLEFT", 10, -60)
+    -- Show Off-Hand on Main Checkbox
+    panel.show_offhand_on_main_checkbox = addon_data.config.CheckBoxFactory(
+        "PlayerShowOffHandOnMainCheckBox",
+        panel,
+        L["Show Off-Hand on Main"],
+        L["Enables the player's off-hand on the main swing bar."],
+        addon_data.player.ShowOffHandOnMainCheckBoxOnClick)
+    panel.show_offhand_on_main_checkbox:SetPoint("TOPLEFT", 10, -80)
     -- Show Border Checkbox
     panel.show_border_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerShowBorderCheckBox",
@@ -781,7 +816,7 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Show border"],
         L["Enables the player bar's border."],
         addon_data.player.ShowBorderCheckBoxOnClick)
-    panel.show_border_checkbox:SetPoint("TOPLEFT", 10, -80)
+    panel.show_border_checkbox:SetPoint("TOPLEFT", 10, -100)
     -- Show Classic Bars Checkbox
     panel.classic_bars_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerClassicBarsCheckBox",
@@ -789,7 +824,7 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Classic bars"],
         L["Enables the classic texture for the player's bars."],
         addon_data.player.ClassicBarsCheckBoxOnClick)
-    panel.classic_bars_checkbox:SetPoint("TOPLEFT", 10, -100)
+    panel.classic_bars_checkbox:SetPoint("TOPLEFT", 10, -120)
     -- Fill/Empty Checkbox
     panel.fill_empty_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerFillEmptyCheckBox",
@@ -797,7 +832,7 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Fill / Empty"],
         L["Determines if the bar is full or empty when a swing is ready."],
         addon_data.player.FillEmptyCheckBoxOnClick)
-    panel.fill_empty_checkbox:SetPoint("TOPLEFT", 10, -120)
+    panel.fill_empty_checkbox:SetPoint("TOPLEFT", 10, -140)
     -- Show Left Text Checkbox
     panel.show_left_text_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerShowLeftTextCheckBox",
@@ -805,7 +840,7 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Show Left Text"],
         L["Enables the player's left side text."],
         addon_data.player.ShowLeftTextCheckBoxOnClick)
-    panel.show_left_text_checkbox:SetPoint("TOPLEFT", 10, -140)
+    panel.show_left_text_checkbox:SetPoint("TOPLEFT", 10, -160)
     -- Show Right Text Checkbox
     panel.show_right_text_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerShowRightTextCheckBox",
@@ -813,7 +848,7 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Show Right Text"],
         L["Enables the player's right side text."],
         addon_data.player.ShowRightTextCheckBoxOnClick)
-    panel.show_right_text_checkbox:SetPoint("TOPLEFT", 10, -160)
+    panel.show_right_text_checkbox:SetPoint("TOPLEFT", 10, -180)
     -- Show Paladin Seal Twist Checkbox
     panel.show_paladin_blood_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerShowPaladingBloodCheckBox",
@@ -821,7 +856,7 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Show Paladin Twist"],
         L["Show 0.4s marker before swing to help with seal twisting. Apply seal after this."],
         addon_data.player.ShowPaladinBloodCheckBoxOnClick)
-    panel.show_paladin_blood_checkbox:SetPoint("TOPLEFT", 10, -180)
+    panel.show_paladin_blood_checkbox:SetPoint("TOPLEFT", 10, -200)
     -- Show Paladin Seal Twist Checkbox GCD
     panel.show_paladin_command_checkbox = addon_data.config.CheckBoxFactory(
         "PlayerShowPaladinCommandCheckBox",
@@ -829,8 +864,8 @@ addon_data.player.CreateConfigPanel = function(parent_panel)
         L["Show Paladin GCD"],
         L["Show GCD marker before swing to help with seal twisting. Apply first seal before this."],
         addon_data.player.ShowPaladinCommandCheckBoxOnClick)
-    panel.show_paladin_command_checkbox:SetPoint("TOPLEFT", 10, -200)
-    
+    panel.show_paladin_command_checkbox:SetPoint("TOPLEFT", 10, -220)
+
     -- Width EditBox
     panel.width_editbox = addon_data.config.EditBoxFactory(
         "PlayerWidthEditBox",
