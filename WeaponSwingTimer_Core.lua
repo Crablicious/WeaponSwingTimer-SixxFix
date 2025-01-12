@@ -512,9 +512,9 @@ swing_reset_spells['WARRIOR'] = {
     -- --[[ Shield Block ]]
     -- --[[ Shield Slam ]]
     -- --[[ Shield Wall ]]
-    -- --[[ Shoot Bow ]]
-    -- --[[ Shoot Crossbow ]]
-    -- --[[ Shoot Gun ]]
+    --[[ Shoot Bow ]]               2480,
+    --[[ Shoot Crossbow ]]          7919,
+    --[[ Shoot Gun ]]               7918,
     --[[ Slam ]]                    1464, 8820, 11604, 11605,
     -- --[[ Sunder Armor ]]
     -- --[[ Sweeping Strikes ]]
