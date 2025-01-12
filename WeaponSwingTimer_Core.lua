@@ -692,6 +692,7 @@ local function OnAddonLoaded(self)
     addon_data.core.core_frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
     addon_data.core.core_frame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
     addon_data.core.core_frame:RegisterEvent("UNIT_SPELLCAST_FAILED_QUIET")
+    addon_data.core.core_frame:RegisterEvent("UNIT_SPELLCAST_SENT")
     -- Load the settings for the core and all timers
     LoadAllSettings()
     InitializeAllVisuals()
@@ -731,15 +732,21 @@ local function CoreFrame_OnEvent(self, event, ...)
     elseif event == "STOP_AUTOREPEAT_SPELL" then
         addon_data.hunter.OnStopAutorepeatSpell()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        addon_data.player.OnUnitSpellCastSucceeded(args[1], args[3])
         addon_data.hunter.OnUnitSpellCastSucceeded(args[1], args[3])
 		addon_data.castbar.OnUnitSpellCastSucceeded(args[1], args[3])
     elseif event == "UNIT_SPELLCAST_FAILED" then
+		addon_data.player.OnUnitSpellCastFailed(args[1], args[3])
 		addon_data.castbar.OnUnitSpellCastFailed(args[1], args[3])
     elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
+		addon_data.player.OnUnitSpellCastInterrupted(args[1], args[3])
 		addon_data.hunter.OnUnitSpellCastInterrupted(args[1], args[3])
 		addon_data.castbar.OnUnitSpellCastInterrupted(args[1], args[3])
     elseif event == "UNIT_SPELLCAST_FAILED_QUIET" then
+        addon_data.player.OnUnitSpellCastFailedQuiet(args[1], args[3])
         addon_data.hunter.OnUnitSpellCastFailedQuiet(args[1], args[3])
+    elseif event == "UNIT_SPELLCAST_SENT" then
+        addon_data.player.OnUnitSpellCastSent(args[1], args[4])
     end
 end
 

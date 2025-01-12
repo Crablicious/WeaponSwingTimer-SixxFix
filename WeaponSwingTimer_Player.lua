@@ -34,6 +34,7 @@ addon_data.player.default_settings = {
 	pala_show_blood = false,
 	pala_show_command = false,
 	pala_offset = 6,
+        warr_show_queued = true,
 }
 
 addon_data.player.class = UnitClass("player")[2]
@@ -45,6 +46,8 @@ addon_data.player.main_weapon_speed = 2
 addon_data.player.main_weapon_id = GetInventoryItemID("player", 16)
 addon_data.player.main_speed_changed = false
 addon_data.player.extra_attacks_flag = false
+addon_data.player.warr_heroic_strike_queued_flag = false
+addon_data.player.warr_cleave_queued_flag = false
 
 addon_data.player.off_swing_timer = 0.00001
 addon_data.player.prev_off_weapon_speed = 2
@@ -52,6 +55,37 @@ addon_data.player.off_weapon_speed = 2
 addon_data.player.off_weapon_id = GetInventoryItemID("player", 17)
 addon_data.player.has_offhand = false
 addon_data.player.off_speed_changed = false
+
+local heroic_strike_spell_ids = {
+   [78]=true,    -- Heroic Strike 1
+   [284]=true,   -- Heroic Strike 2
+   [285]=true,   -- Heroic Strike 3
+   [1608]=true,  -- Heroic Strike 4
+   [11564]=true, -- Heroic Strike 5
+   [11565]=true, -- Heroic Strike 6
+   [11566]=true, -- Heroic Strike 7
+   [11567]=true, -- Heroic Strike 8
+   [25286]=true, -- Heroic Strike 9
+   [29707]=true, -- Heroic Strike 10
+   [30324]=true, -- Heroic Strike 11
+}
+
+local cleave_spell_ids = {
+   [845]=true,   -- Cleave 1
+   [7369]=true,  -- Cleave 2
+   [11608]=true, -- Cleave 3
+   [11609]=true, -- Cleave 4
+   [20569]=true, -- Cleave 5
+   [25231]=true, -- Cleave 6
+}
+
+addon_data.player.is_spell_heroic_strike = function(spell_id)
+   return heroic_strike_spell_ids[spell_id]
+end
+
+addon_data.player.is_spell_cleave = function(spell_id)
+   return cleave_spell_ids[spell_id]
+end
 
 addon_data.player.LoadSettings = function()
     -- If the carried over settings dont exist then make them
@@ -156,7 +190,45 @@ addon_data.player.OnCombatLogUnfiltered = function(combat_info)
             addon_data.core.SpellHandler("player", spell_id)
         end
     end
-    
+
+end
+
+addon_data.player.OnWarrQueuedSpell = function(unit, spell_id, is_queued)
+   local settings = character_player_settings
+   if settings.warr_show_queued and unit == "player" then
+      if addon_data.player.is_spell_heroic_strike(spell_id) then
+         addon_data.player.warr_heroic_strike_queued_flag = is_queued
+      elseif addon_data.player.is_spell_cleave(spell_id) then
+         addon_data.player.warr_cleave_queued_flag = is_queued
+      end
+   end
+end
+
+-- triggered when a heroic strike/cleave is queued.
+addon_data.player.OnUnitSpellCastSent = function(unit, spell_id)
+   addon_data.player.OnWarrQueuedSpell(unit, spell_id, true)
+end
+
+-- triggered when a heroic strike/cleave succeeds.
+addon_data.player.OnUnitSpellCastSucceeded = function(unit, spell_id)
+   addon_data.player.OnWarrQueuedSpell(unit, spell_id, false)
+end
+
+-- triggered when a heroic strike/cleave fails to cast, e.g. you are
+-- not turned towards the enemy.
+addon_data.player.OnUnitSpellCastFailed = function(unit, spell_id)
+   addon_data.player.OnWarrQueuedSpell(unit, spell_id, false)
+end
+
+-- triggered when a queued heroic strike/cleave is interrupted, e.g.
+-- with a knockdown
+addon_data.player.OnUnitSpellCastInterrupted = function(unit, spell_id)
+   addon_data.player.OnWarrQueuedSpell(unit, spell_id, false)
+end
+
+-- triggered when a heroic strike/cleave is cancelled.
+addon_data.player.OnUnitSpellCastFailedQuiet = function(unit, spell_id)
+   addon_data.player.OnWarrQueuedSpell(unit, spell_id, false)
 end
 
 addon_data.player.ResetMainSwingTimer = function()
@@ -268,6 +340,13 @@ addon_data.player.UpdateVisualsOnUpdate = function()
             frame.main_spark:Hide()
         else
             frame.main_spark:Show()
+        end
+        if settings.warr_show_queued then
+           if addon_data.player.warr_heroic_strike_queued_flag or addon_data.player.warr_cleave_queued_flag then
+              frame.main_bar:SetVertexColor(0.5, 0.1, 0.9, settings.main_a)
+           else
+              frame.main_bar:SetVertexColor(settings.main_r, settings.main_g, settings.main_b, settings.main_a)
+           end
         end
         if addon_data.player.has_offhand and settings.show_offhand_on_main then
            local off_timer = addon_data.player.off_swing_timer
